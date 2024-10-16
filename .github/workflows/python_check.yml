@@ -1,0 +1,34 @@
+name: Python Environment Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step to run the script on Ubuntu and macOS
+      - name: Run check_python.sh on Unix-like systems
+        if: matrix.os != 'windows-latest'
+        run: |
+          chmod +x check_python.sh
+          ./check_python.sh
+
+      # Step to run the script on Windows
+      - name: Run check_python.ps1 on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          ./check_python.ps1
+        shell: pwsh
