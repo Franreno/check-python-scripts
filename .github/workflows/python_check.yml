@@ -19,15 +19,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Step to run the script on Ubuntu and macOS
-      - name: Run check_python.sh on Unix-like systems
+      # Step to run the script on Unix-like systems (Ubuntu and macOS)
+      - name: Run check_python.sh initially
         if: matrix.os != 'windows-latest'
         run: |
           chmod +x check_python.sh
           ./check_python.sh
 
-      # Step to run the script on Windows
-      - name: Run check_python.ps1 on Windows
+      # Step to uninstall Python and pip on Ubuntu
+      - name: Uninstall Python and pip on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get remove --purge -y python3 python3-pip
+          sudo apt-get autoremove -y
+          sudo apt-get autoclean
+
+      # Step to uninstall Python and pip on macOS
+      - name: Uninstall Python and pip on macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew uninstall python3 || true
+          sudo rm -rf /Library/Frameworks/Python.framework
+          sudo rm -rf /usr/local/bin/python3 /usr/local/bin/pip3
+
+      # Step to uninstall Python and pip on Windows
+      - name: Uninstall Python and pip on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          python -m pip uninstall -y pip || true
+          Remove-Item -Recurse -Force "C:\Python*" || true
+        shell: pwsh
+
+      # Run the script again after uninstalling to check installation capability
+      - name: Run check_python.sh again on Unix-like systems
+        if: matrix.os != 'windows-latest'
+        run: |
+          chmod +x check_python.sh
+          ./check_python.sh
+
+      - name: Run check_python.ps1 again on Windows
         if: matrix.os == 'windows-latest'
         run: |
           ./check_python.ps1
